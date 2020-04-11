@@ -1,0 +1,2 @@
+# GT
+Go Translation Content
