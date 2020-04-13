@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GT/doc/GraphQLAndGo/structure"
 	"database/sql"
 	"log"
 	"net/http"
@@ -13,6 +14,6 @@ func main() {
 	}
 	defer db.Close()
 
-	http.Handle("/hello", &HelloHandler{db: db})
+	http.Handle("/hello", &structure.HelloHandler{Db: db})
 	http.ListenAndServe(":8080", nil)
 }

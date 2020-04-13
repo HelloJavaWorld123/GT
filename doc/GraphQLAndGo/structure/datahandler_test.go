@@ -1,4 +1,4 @@
-package main
+package structure
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 func TestHelloHandler_ServeHTTP(t *testing.T) {
 	db, _ := sql.Open("postgresql", ".....")
 	defer db.Close()
-	handler := HelloHandler{db: db}
+	handler := HelloHandler{Db: db}
 
 	recorder := httptest.NewRecorder()
 	recorder.Body = bytes.NewBuffer(make([]byte, 10))

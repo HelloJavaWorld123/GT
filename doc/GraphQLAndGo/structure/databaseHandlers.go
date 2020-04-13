@@ -1,4 +1,4 @@
-package main
+package structure
 
 import (
 	"database/sql"
@@ -7,12 +7,12 @@ import (
 )
 
 type HelloHandler struct {
-	db *sql.DB
+	Db *sql.DB
 }
 
 func (helloHandler *HelloHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var name string
-	row := helloHandler.db.QueryRow("select myname from mytable")
+	row := helloHandler.Db.QueryRow("select myname from mytable")
 	if err := row.Scan(&name); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
