@@ -1,7 +1,7 @@
 # [Structuring Applications In Go](https://medium.com/@benbjohnson/structuring-applications-in-go-3b04be4ff091)
 
 #### Don't Use Global Variables
-我读过的Go **net/http** 的列子大部分是用 http.HandleFunc,想下面这样:
+我读过关于Go **net/http** 的列子大部分是用**http.HandleFunc**,像下面这样:
 (The Go net/http examples I read always show a function registered with http.HandleFunc like this:)
 ```go
 package main
