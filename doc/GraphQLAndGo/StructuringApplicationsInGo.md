@@ -136,3 +136,165 @@ camget, cammount, camput, & camtool.
 camget, cammount, camput, & camtool.)
 
 ###### Library driven development
+从根目录下移除**main.go**文件，有助于从库的角度构建你的应用。应用程序的二进制文件只是你项目库的一个简单客户端。
+(Moving the **main.go** file out of your root allows you build your application from the perspective of a library.Your application binary is simply a client of your application's library)
+我发现可以帮助我很清晰的抽象出那些代码是库的核心逻辑以及那些代码是运行这个项目
+(I find this helps me make a cleaner abstraction of what code is for my core logic(the library) and what code is for running my application(the application binary))
+
+项目的二进制文件只是用户与你的逻辑交互的入口。有时你想要有多种交互方式因此你创建了多个二进制文件。
+比如：你有一个“adder”包可以让用户所有的数字进行累加，你可能想要发布一个命令行版本和web版本。通过下面这种方法就很容易做到：
+```go
+adder/
+  adder.go
+  cmd/
+    adder/
+      main.go
+    adder-server/
+      main.go
+```
+用户可以使用 **go get**命令安装你的“adder”应用：
+```
+$ go get github.com/benbjohnson/adder/...
+```
+
+现在,用户将安装了 "adder" 和 “adder-server”
+
+#### Wrap types for application-specific context
+我发现一个特别有用的技巧，包装一些泛型类型作为应用程序的上下文。一个很好的列子就是包装DB和Tx的类型。
+这些类型可以在**database/sql**包或者其他数据库中比如：[Bolt](https://github.com/boltdb/bolt)
+
+开始像下面这样在我们项目中包装DB和Tx类型:
+```go
+package myapp
+
+import (
+	"database/sql"
+)
+
+type DB struct {
+	*sql.DB
+}
+
+type Tx struct {
+	*sql.Tx
+}
+```
+
+然后创建数据库和事务初始化函数：
+```go
+package myapp
+
+import (
+	"database/sql"
+)
+
+type DB struct {
+	*sql.DB
+}
+
+type Tx struct {
+	*sql.Tx
+}
+
+//open datasource
+func Open(dataSourceName string) (*DB, error) {
+	db,err := sql.Open("postgresql",dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	
+	return &DB{db}, err
+}
+
+func (db *DB) Begin()(*Tx,error)  {
+	tx,err := db.DB.Begin()
+
+	if err != nil {
+		return nil, err
+	}
+	return &Tx{tx},err
+}
+```
+使用事务为我们的项目创建具体的函数，比如：项目中有创建用户并且创建用户之前需要增加验证,那么创建一个**Tx.CreateUser**函数,如下：
+```go
+package myapp
+
+import (
+	"database/sql"
+	"errors"
+)
+
+func (tx *Tx) CreatUser(info *UserInfo) (sql.Result,error){
+	if info == nil {
+		return nil,errors.New("user must not bee null")
+	}
+
+	if info.UserName == "" {
+		return nil,errors.New("userName must not bee null")
+	}
+
+	result, err := tx.Exec("insert into user_info values (....)", "")
+	if err != nil {
+		return nil,err
+	}
+	return result, err
+}
+```
+比如：一个用户创建之前需要对另外一个系统进行验证或者另外一张表需要更新，那么这个函数将会变得更加复杂.但是对于应用程序的调用者，它将会被封装在一个函数中。
+
+###### Transactional composition
+将这些函数添加到Tx中的另一个好处是，可以在一个事务中完成多个操作。
+比如：需要添加一个用户？ 调用一次**Tx.CreateUser()**
+```go
+tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	tx.CreatUser(&myapp.UserInfo{UserName: "test"})
+	tx.Commit()
+```
+需要添加多个用户？也可是使用这个函数，而不需要创建**Tx.CreateUsers()**:
+```go
+tx, err = db.Begin()
+for _,u := range userInfos {
+    tx.CreatUser(&u)
+}
+tx.Commit()
+```
+
+对底层数据进行抽象还可以简化数据库之间的交换或者多个数据的操作。都被封装到项目中**DB & Tx**的类型相关的函数中。
+
+#### Don’t go crazy with subpackages
+大部分的语言支持用户按照自己喜欢的方式组织包的结构。我曾经使用Java库开发，java库中耦合的类可以塞进其他的包中，并且这些包可以相互包含。it was a mess(一团糟)
+
+Go 对包的要求只有一个：不能循环依赖；刚开始我对循环依赖很陌生。
+刚开始组织包时每一个文件只有一个类型，一旦在一个包下有很多文件时，我就创建一个子文件夹。
+然而，当我不能在A包中包含B包，B包中包含C包,C包中包含A包时,这些子文件夹变得很难管理。这就是循环依赖。
+我意识到，除了有太多文件之外，没有很好的利用把包分开。
+
+最近我发现另外一个方向：只用一个根目录。
+通常我得项目类型都是非常相关的，所以从可用性和API角度来看，它更合适。这些类型还可以利用在他们之间未导出的API来简化API。
+
+我发现一些方法帮助我趋向于创建更大的包结构(large packages)：
+
+- 将关联的类型和代码组织在一个文件中。如果类型和函数组织的很好，就会发现这个文件将趋向于200到500行。
+这听起来很大，但却很容易关联查找(navigate)。我的文件的上限是1000行。
+- 将重要的类型放在文件的顶部，不重要的类型放在文件的底部。
+- 一旦你的项目源码超过10000行，你需要认真的评估是否需要分割成更小的工程。
+
+[Bolt](https://github.com/boltdb/bolt) 是一个很好的列子。每个文件都是与Bolt相关的类型的分组。
+```
+bucket.go
+cursor.go
+db.go
+freelist.go
+node.go
+page.go
+tx.go
+```
+
+#### Conclusion
+组织代码是软件编程中很重要的一部分，但是却很少得到应有的关注。谨慎使用全局变量、将**main.go**移动到指定的文件夹、Wrap types for application-specific context、
+以及减少子包的数量，这些只是使Go项目在易用性和扩展性上的一部分技巧。
+
+如果使用编写Go项目同样的方法编写java、Ruby或者Node.js会很难进行。
