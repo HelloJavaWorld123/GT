@@ -454,3 +454,4 @@ schema:
 
 
 #### Great Success!
+This's it!希望这篇博客对你在Go中编写GraphQL API有帮助。我尝试将功能分解到不同的包或文件中，使其更容易扩展,而且每一块也很容易测试。
