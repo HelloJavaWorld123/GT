@@ -1,8 +1,7 @@
 # [Building an API With GraphQL And GO](https://medium.com/@bradford_hamilton/building-an-api-with-graphql-and-go-9350df5c9356)
->在这边博客中我们将使用**GO**、**GraphQL**、**PostgreSQL**创建一个API.我已经在项目结构上
->迭代了几个版本了，这个是我最新欢的一个。在大部分的时间了,我创建web APIs都是通过**Node.js**和**Ruby/Rails**.
+>本博客中我们将使用**GO**、**GraphQL**、**PostgreSQL**创建一个API.我已在项目结构上迭代几个版本，这个是我最新欢的一个。在大部分的时间,我创建web APIs都是通过**Node.js**和**Ruby/Rails**.
 >我发现第一次使用**Go**创建APIs时,需要费很大的劲儿。***Ben Johnson***的[Structuring Applications in Go ](/@benbjohnson/structuring-applications-in-go-3b04be4ff091)文章
->对我有很大的帮助,博客中的部分代码就得益于文章的直到,推荐阅读。
+>对我有很大的帮助,本博客中的部分代码就得益于***Ben Johnson***文章的指导,推荐阅读。
 
 
 #### Setup
