@@ -1,12 +1,12 @@
 # [Building an API With GraphQL And GO](https://medium.com/@bradford_hamilton/building-an-api-with-graphql-and-go-9350df5c9356)
->本博客中我们将使用**GO**、**GraphQL**、**PostgreSQL**创建一个API.我已在项目结构上迭代几个版本，这个是我最新欢的一个。在大部分的时间,我创建web APIs都是通过**Node.js**和**Ruby/Rails**.
->我发现第一次使用**Go**创建APIs时,需要费很大的劲儿。***Ben Johnson***的[Structuring Applications in Go ](/@benbjohnson/structuring-applications-in-go-3b04be4ff091)文章
+>本博客中将使用**Go**、**GraphQL**、**PostgreSQL**创建一个API.我已在项目结构上迭代几个版本，这个是我最新欢的一个。在大部分的时间,我创建web APIs都是通过**Node.js**和**Ruby/Rails**.
+>而第一次使用**Go**设计 web apis时,需要费很大的劲儿。***Ben Johnson***的[Structuring Applications in Go ](https://medium.com/@benbjohnson/structuring-applications-in-go-3b04be4ff091) 文章
 >对我有很大的帮助,本博客中的部分代码就得益于***Ben Johnson***文章的指导,推荐阅读。
 
 
-#### Setup
-首先，先进行安装。在本篇博客中，我将在macOS中完成。
-如果在你的macOS上还没有**Go**和**PostGreSQL**,[这片文章](/github.com/bradford-hamilton/go-graphql-api)详细讲解如何在**macOS**上配置**Go**和**PostgreSQL**.
+#### 配置
+首先,从项目的配置开始。在本篇博客中，我将在macOS中完成,但这并不重要。
+如果在你的macOS上还没有**Go**和**PostGreSQL**,[bradford-hamilton/go-graphql-api](https://github.com/github.com/bradford-hamilton/go-graphql-api) 详细讲解了如何在macOS上配置**Go**和**PostgreSQL**.
 
 创建一个新项目--**go-graphal-api**,整体项目结构如下：
 ```go
@@ -21,9 +21,8 @@
 └── server
     └── server.go
 ```
-
-有一些额外依赖需要安装。我喜欢开发过程中能够热加载的[realize](https://github.com/oxequa/realize),go-chi的轻量级路由 [chi](https://github.com/go-chi/chi) 和 
-管理request/response负载的 [render](https://github.com/go-chi/render) ,以及 [graphql-go/graphql](https://github.com/graphql-go/graphql) 作为我们的实现
+有一些额外依赖需要安装。开发中热加载的[realize](https://github.com/oxequa/realize) ,go-chi的轻量级路由 [chi](https://github.com/go-chi/chi) 和 
+管理request/response负载的 [render](https://github.com/go-chi/render) ,以及 [graphql-go/graphql](https://github.com/graphql-go/graphql)
 ```
 go get github.com/oxequa/realize
 go get github.com/go-chi/chi
@@ -32,7 +31,7 @@ go get github.com/graphql-go/graphql
 go get github.com/lib/pq
 ```
 
-最后,我们创建一个数据库和一些需要测试的数据,运行**psql** 进行Postgres的命令行,创建一个数据库:
+最后,创建一个数据库和一些测试使用的数据,在Postgres的命令行中输入**psql**,创建一个数据库:
 ```postgresql
 CREATE DATABASE go_graphql_db;
 ```
@@ -41,6 +40,7 @@ CREATE DATABASE go_graphql_db;
 ```postgresql
 \c go_graphql_db
 ```
+
 链接上后,将一下sql语句粘贴到命令行:
 ```postgresql
 CREATE TABLE users (
@@ -63,7 +63,7 @@ INSERT INTO users VALUES
 我们创建了一个基础的用户表并新增了6条新用户数据，对本博客来说已经足够.接下来开始构建我们的API!
 
 #### API
-在这篇博客中,所有的代码片段会都将包含一些注释,以帮助理解每一步.
+在这篇博客中,所有的代码片段都会包含一些注释,以帮助理解每一步.
 
 从**main.go**开始:
 ```go
