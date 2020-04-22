@@ -137,11 +137,11 @@ func initializeAPI() (*chi.Mux, *postgres.Db) {
 }
 ```
 
-上面的**gql**、**postgres**、and**server**的路径应该是你本地的路径,以及**postgres.ConnString()** 链接PostgreSQL的用户名也应该是你自己的和我的不一样.
+在上面导入的**gql**、**postgres**、and**server**的路径应该是你本地的路径,以及**postgres.ConnString()** 中链接PostgreSQL的用户名也应该是你自己的和我的不一样。
 在 **initializeAPI()** 分为几大块主要的部分,接下来我们逐步构建每一块。
 
-**chi.NewRouter()** 创建router并返回一个mux,接下来我们创建一个新的链接来链接我们的PostgreSQL数据库.
-使用 **postgres.ConnString()** 创建一个***string*** 类型的链接配置,并封装到 **postgres.New()** 函数中.我们在自己包中的 **postgres.go** 文件中构建:
+使用 **chi.NewRouter()** 创建router并返回一个mux,接下来是创建一个PostgreSQL数据库链接.
+使用 **postgres.ConnString()** 创建一个***string*** 类型的链接配置,并封装到 **postgres.New()** 函数中.这些逻辑在我们自己包中的 **postgres.go** 文件中构建:
 ```go
 package postgres
 
@@ -229,9 +229,9 @@ func (d *Db) GetUsersByName(name string) []User {
 	return users
 }
 ```
-上面的思想是：创建数据库的链接并返回持有该数据库链接的**Db**对象.As you can tell the actual functionality/query is pretty useless, but the point is to get everything wired up as a good starting point.
+上面的思想是：创建数据库的链接并返回持有该链接的**Db**对象.然后创建了一个**db**的**GetUserByUsername()** 方法.
 
-将关注点重新回到 **main.go**文件,在40行处创建了一个root query 用于创建构建GraphQL的schema.我们在 **gql** 包下的 **queries.go** 中创建:
+将关注点重新回到**main.go**文件,在40行处创建了一个root query用于构建GraphQL的schema.我们在**gql**包下的**queries.go**中创建:
 ```go
 package gql
 
@@ -274,6 +274,9 @@ func NewRoot(db *postgres.Db) *Root {
 	return &root
 }
 ```
+在**NewRoot()** 方法中传入**db**,并使用该db创建一个**Resolver**。在**Resolver**方法中对数据库进行操作。
+然后创建了一个new root用于用户的查询，需要**name**作为查询参数,类型是**graphql.NewList**的**User**(切片或者数组类型),在**gql**包下的**type.go**文件中定义。如果有其他类型的查询,就在这个root中增加。
+要把引入的**postgres**包改成自己本地的包。
 
 接下来看一下 **resolvers.go**:
 ```go
@@ -301,8 +304,9 @@ func (r *Resolver) UserResolver(p graphql.ResolveParams) (interface{}, error) {
 	return nil, nil
 }
 ```
+这里导入的**postgres**包同样是你本地的.在这个地方还可以增加其他需要的解析器。
 
-打开 **types.go** :
+接下来看**types.go** :
 ```go
 package gql
 
@@ -332,11 +336,11 @@ var User = graphql.NewObject(
 	},
 )
 ```
-类似的,在这里添加我们不同的类型,每一个字段都指定了类型.在 **main.go**文件的42行使用root query创建了一个新的模式.
+类似的,在这里添加我们不同的类型,每一个字段都指定了类型.在**main.go**文件的42行使用root query创建了一个新的查询.
 
 
 #### Almost there !
-在**main.go**往下的51行处,创建一个新的server,server持有GraphQL的指针。下面是**server.go**的内容:
+在**main.go**往下的51行处,创建一个新的server,server持有GraphQL schema的指针。下面是**server.go**的内容:
 ```go
 package server
 
@@ -384,8 +388,8 @@ func (s *Server) GraphQL() http.HandlerFunc {
 	}
 }
 ```
-对于**GraphQL**方法，是处理GraphQL查询的唯一方法。注意:更新**gql**的路径是你本地的路径.
-接下来看一下最后一个文件**gql.go**：
+在server中有一个**GraphQL**的方法,这个方法的主要作用就是处理**GraphQL**的查询.记得将**gql**的路径更新为你本地的路径.
+接下来看最后一个文件:**gql.go**：
 ```go
 package gql
 
@@ -410,11 +414,10 @@ func ExecuteQuery(query string, schema graphql.Schema) *graphql.Result {
 	return result
 }
 ```
-**ExecuteQuery()** 函数用来执行我们的GraphQL查询。我设想这里应该有一个类似于**ExecuteMutation()** 函数用来处理GraphQL的变化.
+这里只有一个简单的**ExecuteQuery()**函数用来执行GraphQL查询。在这里可能会有一个类似于**ExecuteMutation()** 函数用来处理GraphQL的mutations。
 
-在**initializeAPI()**的最后增加一些中间工具以及增加处理**/graphql**请求的**GraphQL** server方法。在这里增加额外的RESTful路由，以及在server中增加处理的方法。
-
-接下来在项目的根目录运行**realize init**,有两次提示信息并且两次都输入**n**
+在**initializeAPI()**的最后,在router中增加一些中间工具，以及增加处理**/graphql**POSTs请求的**GraphQL**server方法。并且在这个地方增加其他RESTful请求的路由,并在server中增加处理路由的方法。
+然后在项目的根目录运行**realize init**,会有两次提示信息并且两次都输入**n**
 
 下面是在你项目的根目录下创建的 **.realize.yaml** 文件:
 ```
@@ -440,7 +443,7 @@ schema:
 ```
 这段配置对于监控你项目里面的改变非常重要,如果检测到有改变,将自动重启server并重新运行 **main.go** 文件.
 
-有一些暴露GraphQL API的非常好的工具,比如: **[graphiql](https://github.com/graphql/graphiql) **、**[insomnia](https://insomnia.rest/) **、**[graphql-playground](https://github.com/prisma/graphql-playground)**,
+有一些开发GraphQL API非常好的工具,比如: **[graphiql](https://github.com/graphql/graphiql) **、**[insomnia](https://insomnia.rest/) **、**[graphql-playground](https://github.com/prisma/graphql-playground)**,
 还可以发送一个application/json请求体的POST请求,比如:
 ```
 {
@@ -449,8 +452,8 @@ schema:
 ```
 
 在[Postman](https://www.getpostman.com/) 里像下面这样:
-
-在查询中只请求一个属性或者多个属性的组合.在GraphQL的正式版中,可以只请求我们希望通过网络发送的信息。
+#插入图片
+在查询中可以只请求一个属性或者多个属性的组合.在GraphQL的正式版中,可以只请求我们希望通过网络发送的信息。
 
 
 #### Great Success!
