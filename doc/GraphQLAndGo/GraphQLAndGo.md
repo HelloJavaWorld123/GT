@@ -418,6 +418,7 @@ func ExecuteQuery(query string, schema graphql.Schema) *graphql.Result {
 
 在**initializeAPI()**的最后,在router中增加一些中间工具，以及增加处理**/graphql**POSTs请求的**GraphQL**server方法。并且在这个地方增加其他RESTful请求的路由,并在server中增加处理路由的方法。
 然后在项目的根目录运行**realize init**,会有两次提示信息并且两次都输入**n**
+# 插入图片
 
 下面是在你项目的根目录下创建的 **.realize.yaml** 文件:
 ```
