@@ -418,7 +418,7 @@ func ExecuteQuery(query string, schema graphql.Schema) *graphql.Result {
 
 在**initializeAPI()**的最后,在router中增加一些中间工具，以及增加处理**/graphql**POSTs请求的**GraphQL**server方法。并且在这个地方增加其他RESTful请求的路由,并在server中增加处理路由的方法。
 然后在项目的根目录运行**realize init**,会有两次提示信息并且两次都输入**n**
-# 插入图片
+# 插入 cmd_console.png
 
 下面是在你项目的根目录下创建的 **.realize.yaml** 文件:
 ```
@@ -453,9 +453,13 @@ schema:
 ```
 
 在[Postman](https://www.getpostman.com/) 里像下面这样:
-#插入图片
+#插入图片 图片名称为 postman.png
+
 在查询中可以只请求一个属性或者多个属性的组合.在GraphQL的正式版中,可以只请求我们希望通过网络发送的信息。
 
 
 #### Great Success!
 This's it!希望这篇博客对你在Go中编写GraphQL API有帮助。我尝试将功能分解到不同的包或文件中，使其更容易扩展,而且每一块也很容易测试。
+
+
+译者：[HelloJavaWorld123](https://github.com/HelloJavaWorld123)
