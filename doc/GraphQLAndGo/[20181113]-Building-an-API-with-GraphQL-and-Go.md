@@ -461,5 +461,12 @@ schema:
 #### Great Success!
 This's it!希望这篇博客对你在Go中编写GraphQL API有帮助。我尝试将功能分解到不同的包或文件中，使其更容易扩展,而且每一块也很容易测试。
 
+---
 
+via: https://medium.com/@bradford_hamilton/building-an-api-with-graphql-and-go-9350df5c9356
+
+作者：[Bradford Lamson-Scribner](https://medium.com/@bradford_hamilton?source=post_header_lockup)
 译者：[HelloJavaWorld123](https://github.com/HelloJavaWorld123)
+校对：[校对者ID](https://github.com/校对者ID)
+
+本文由 [GCTT](https://github.com/studygolang/GCTT) 原创编译，[Go 中文网](https://studygolang.com/) 荣誉推出
